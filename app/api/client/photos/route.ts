@@ -8,9 +8,10 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Missing slug" }, { status: 400 });
 
     const clientRes = await pool.query(
-        "SELECT id FROM clients WHERE slug = $1",
+        "SELECT id, name FROM clients WHERE slug = $1",
         [slug]
     );
+
     if (clientRes.rows.length === 0)
         return NextResponse.json(
             { error: "Client not found" },
@@ -18,10 +19,12 @@ export async function GET(req: Request) {
         );
 
     const clientId = clientRes.rows[0].id;
+    const clientName = clientRes.rows[0].name;
+
     const photosRes = await pool.query(
-        "SELECT * FROM photos WHERE client_id = $1",
+        "SELECT id, r2_key, filename, width, height, is_hero FROM photos WHERE client_id = $1 ORDER BY created_at ASC",
         [clientId]
     );
 
-    return NextResponse.json({ photos: photosRes.rows });
+    return NextResponse.json({ photos: photosRes.rows, name: clientName });
 }
