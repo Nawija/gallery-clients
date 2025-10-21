@@ -19,34 +19,15 @@ type Client = {
 };
 
 type UploadFormProps = {
-    clientss: Client[];
+    clients: Client[];
 };
 
-export default function UploadForm({ clientss }: UploadFormProps) {
-    const [clientId, setClientId] = useState(clientss[0]?.slug || "");
+export default function UploadForm({ clients }: UploadFormProps) {
+    const [clientId, setClientId] = useState(clients[0]?.slug || "");
     const [isDragging, setIsDragging] = useState(false);
-    const [clients, setClients] = useState<Client[]>([]);
     const [uploads, setUploads] = useState<UploadPhoto[]>([]);
     const [progress, setProgress] = useState(0);
 
-    useEffect(() => {
-        async function fetchClients() {
-            try {
-                const res = await fetch("/api/admin/clients", {
-                    headers: { "x-admin-pass": "seo123" },
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setClients(data.clients);
-                    if (data.clients.length > 0)
-                        setClientId(data.clients[0].slug);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        fetchClients();
-    }, []);
 
     function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files) return;
