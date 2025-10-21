@@ -26,7 +26,7 @@ export default async function UploadPhotosPage() {
     return (
         <div className="min-h-screen">
             <Nav />
-            {/* <UploadForm clients={clients} /> */}
+            <UploadForm clients={clients} />
         </div>
     );
 }
