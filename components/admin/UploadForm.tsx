@@ -18,11 +18,15 @@ type Client = {
     slug: string;
 };
 
-export default function UploadForm() {
+type UploadFormProps = {
+    clientss: Client[];
+};
+
+export default function UploadForm({ clientss }: UploadFormProps) {
+    const [clientId, setClientId] = useState(clientss[0]?.slug || "");
+    const [isDragging, setIsDragging] = useState(false);
     const [clients, setClients] = useState<Client[]>([]);
-    const [clientId, setClientId] = useState("");
     const [uploads, setUploads] = useState<UploadPhoto[]>([]);
-    const [msg, setMsg] = useState("");
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -79,14 +83,7 @@ export default function UploadForm() {
 
     async function handleUpload(e: React.FormEvent) {
         e.preventDefault();
-        if (!clientId || uploads.length === 0) {
-            setMsg("⚠️ Please choose a client and add files first.");
-            return;
-        }
-
-        setMsg("");
         setProgress(0);
-
         // ustawiamy wszystkie zdjęcia jako "pending"
         setUploads((prev) => prev.map((u) => ({ ...u, status: "pending" })));
 
@@ -139,8 +136,6 @@ export default function UploadForm() {
                 }
             })
         );
-
-        setMsg("✅ All uploads finished.");
     }
 
     return (
@@ -164,11 +159,20 @@ export default function UploadForm() {
                 </select>
             </div>
             {/* UPLOAD AREA */}
-            <div
-                className="border-dashed border-2 border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-50 transition"
-                onDragOver={(e) => e.preventDefault()}
+
+            <motion.div
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                }}
+                onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                }}
                 onDrop={(e) => {
                     e.preventDefault();
+                    setIsDragging(false);
+
                     if (
                         e.dataTransfer.files &&
                         e.dataTransfer.files.length > 0
@@ -180,6 +184,12 @@ export default function UploadForm() {
                         e.dataTransfer.clearData();
                     }
                 }}
+                animate={{
+                    borderColor: isDragging ? "#111" : "#d1d5db",
+                    backgroundColor: isDragging ? "#f9fafb" : "transparent",
+                }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="border-2 border-dashed rounded-xl p-12 h-52 text-center cursor-pointer transition-all bg-white"
             >
                 <input
                     type="file"
@@ -189,20 +199,46 @@ export default function UploadForm() {
                     className="hidden"
                     id="fileUpload"
                 />
+
                 <label
                     htmlFor="fileUpload"
-                    className="flex flex-col items-center justify-center space-y-3 cursor-pointer"
+                    className="flex flex-col items-center justify-center gap-3 cursor-pointer select-none"
                 >
-                    <UploadCloud className="w-10 h-10 text-gray-400" />
-                    <span className="font-medium text-gray-700">
-                        Drag & drop files or{" "}
-                        <span className="underline">click to upload</span>
-                    </span>
-                    <span className="text-sm text-gray-400">
-                        JPG, PNG up to 10MB
-                    </span>
+                    <motion.div
+                        animate={{
+                            y: isDragging ? -2 : 0,
+                            opacity: isDragging ? 0.8 : 1,
+                        }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <UploadCloud
+                            className={`w-10 h-10 ${
+                                isDragging ? "text-black" : "text-gray-400"
+                            } transition-colors`}
+                        />
+                    </motion.div>
+
+                    <div className="space-y-1">
+                        <p
+                            className={`text-base font-medium ${
+                                isDragging ? "text-black" : "text-gray-700"
+                            } transition-colors`}
+                        >
+                            {isDragging
+                                ? "Drop files to upload"
+                                : "Drag & drop your photos"}
+                        </p>
+                        {!isDragging && (
+                            <p className="text-sm text-gray-400">
+                                or{" "}
+                                <span className="underline">
+                                    click to select
+                                </span>
+                            </p>
+                        )}
+                    </div>
                 </label>
-            </div>
+            </motion.div>
 
             {/* PREVIEWS */}
             {uploads.length > 0 && (
