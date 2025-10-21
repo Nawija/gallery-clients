@@ -3,14 +3,41 @@ import { pool } from "@/lib/db";
 import { uploadToR2 } from "@/lib/r2";
 import sharp from "sharp";
 
+// Typ dla wiersza w tabeli photos
+type PhotoRow = {
+    id: string;
+    client_id: string;
+    filename: string;
+    r2_key: string;
+    caption: string | null;
+    width: number;
+    height: number;
+    is_hero: boolean;
+    created_at: string; // timestamp
+};
+
+// Typ danych przesyłanych w body requestu
+type UploadRequestBody = {
+    clientId: string;
+    filename: string;
+    dataBase64: string;
+    caption?: string;
+    isHero?: boolean;
+};
+
 export async function POST(req: Request) {
     const adminPass = req.headers.get("x-admin-pass");
     if (adminPass !== process.env.ADMIN_PASSWORD) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { clientId, filename, dataBase64, caption, isHero } =
-        await req.json();
+    const {
+        clientId,
+        filename,
+        dataBase64,
+        caption,
+        isHero,
+    }: UploadRequestBody = await req.json();
 
     if (!clientId || !filename || !dataBase64) {
         return NextResponse.json(
@@ -48,7 +75,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const result = await pool.query(
+        const result = await pool.query<PhotoRow>(
             `INSERT INTO photos (client_id, filename, r2_key, caption, width, height, is_hero)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
@@ -63,8 +90,8 @@ export async function POST(req: Request) {
             ]
         );
 
-        return NextResponse.json({ photo: result.rows[0] });
-    } catch (err: any) {
+        return NextResponse.json({ photo: result.rows[0] as PhotoRow });
+    } catch (err: unknown) {
         console.error("❌ Upload error:", err);
         return NextResponse.json(
             { error: "Błąd podczas uploadu" },
