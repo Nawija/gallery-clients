@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
                 // Zapis w localStorage zamiast cookie
                 localStorage.setItem(`client_${data.slug}_auth`, "true");
                 // Przekierowanie do strony klienta
-                router.push(`/client/${data.slug}`);
+                router.push(`/strefa-klienta/${data.slug}`);
             } else {
                 setError(data.error || "Login error");
             }
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
                 className="bg-white p-8 rounded shadow-md w-full max-w-sm flex flex-col gap-4"
             >
                 <h1 className="text-2xl font-bold text-center mb-4">
-                    Admin Login
+                    Strefa Klienta
                 </h1>
                 <input
                     type="password"
