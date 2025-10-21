@@ -1,11 +1,76 @@
-import UploadForm from "@/components/UploadForm";
-import Link from "next/link";
+"use client";
 
-export default function AdminPage() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function AdminLoginPage() {
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    async function handleLogin(e: React.FormEvent) {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            const res = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password }),
+            });
+
+            const data = await res.json();
+            setLoading(false);
+
+            if (res.ok) {
+                // ustawiamy cookie na 1 dzień
+                document.cookie = `client_${
+                    data.slug
+                }_auth=true; path=/; max-age=${60 * 60 * 24}`;
+                // przekierowanie do strony klienta
+                router.push(`/client/${data.slug}`);
+            } else {
+                setError(data.error || "Błąd logowania");
+            }
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+            setError("Błąd serwera");
+        }
+    }
+
     return (
-        <div className="container mx-auto p-6 space-y-6">
-            <h1 className="text-2xl font-bold">Panel Admina</h1>
-            <Link href="/admin/new-client">New Client</Link>
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <form
+                onSubmit={handleLogin}
+                className="bg-white p-8 rounded shadow-md w-full max-w-sm flex flex-col gap-4"
+            >
+                <h1 className="text-2xl font-bold text-center mb-4">
+                    Admin Login
+                </h1>
+
+                <input
+                    type="password"
+                    placeholder="Enter client password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="border p-2 rounded w-full"
+                    required
+                />
+
+                <button
+                    type="submit"
+                    className="bg-black text-white py-2 rounded hover:bg-gray-800 transition"
+                >
+                    {loading ? "Checking..." : "Login"}
+                </button>
+
+                {error && (
+                    <p className="text-red-600 text-sm text-center">{error}</p>
+                )}
+            </form>
         </div>
     );
 }
