@@ -39,28 +39,34 @@ export default function AddClientForm() {
             </h2>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <label className="font-semibold text-gray-700 -mb-8 ml-3 z-10 px-2 bg-white w-max">
+                    Client name
+                </label>
                 <input
                     type="text"
-                    placeholder="Client name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
+                    className="border border-gray-300 p-3 pl-5 rounded-lg focus:outline-none focus:ring focus:ring-gray-300 transition"
                     required
                 />
+                <label className="font-semibold text-gray-700 -mb-8 ml-3 z-10 px-2 bg-white w-max">
+                    Slug (link)
+                </label>
                 <input
                     type="text"
-                    placeholder="Slug (e.g. anna-nowak)"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
+                    className="border border-gray-300 p-3 pl-5 rounded-lg focus:outline-none focus:ring focus:ring-gray-300 transition"
                     required
                 />
+                <label className="font-semibold text-gray-700 -mb-8 ml-3 z-10 px-2 bg-white w-max">
+                    Password
+                </label>
                 <input
-                    type="password"
-                    placeholder="Password"
+                    type="text"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
+                    className="border border-gray-300 p-3 pl-5 rounded-lg focus:outline-none focus:ring focus:ring-gray-300 transition"
                     required
                 />
 
