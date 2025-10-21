@@ -156,7 +156,7 @@ export default function UploadForm() {
             </div>
 
             {uploads.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {uploads.map((u, i) => (
                         <div
                             key={i}
@@ -165,7 +165,7 @@ export default function UploadForm() {
                             <img
                                 src={u.preview}
                                 alt={u.file.name}
-                                className="w-full h-32 object-cover"
+                                className="w-32 h-20 object-cover"
                             />
                             <div className="p-2 space-y-1">
                                 <input
