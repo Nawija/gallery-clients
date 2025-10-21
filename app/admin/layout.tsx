@@ -1,12 +1,15 @@
-// app/admin/layout.tsx
 import AdminNav from "@/components/admin/AdminNav";
+import Nav from "@/components/admin/Nav";
 import { ReactNode } from "react";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 text-gray-900 ">
+        <div className="min-h-screen flex bg-gray-100 text-gray-800">
+            {/* Sidebar po lewej */}
             <AdminNav />
-            <main className="max-w-5xl mx-auto mt-10 p-6">{children}</main>
+
+            {/* Główna treść */}
+            <main className="flex-1 overflow-auto">{children}</main>
         </div>
     );
 }
