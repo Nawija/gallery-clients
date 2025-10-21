@@ -2,6 +2,7 @@
 import Nav from "@/components/admin/Nav";
 import Image from "next/image";
 import Link from "next/link";
+export const dynamic = "force-dynamic"; // zamiast prerender
 
 type Client = {
     name: string;
