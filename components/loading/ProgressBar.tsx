@@ -2,58 +2,62 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface ProgressBarProps {
     progress: number;
 }
 
 export default function ProgressBar({ progress }: ProgressBarProps) {
-    return (
-        <div className="mt-4 relative h-10">
-            <AnimatePresence>
-                {/* Pasek progresu + procenty */}
-                {progress < 100 && (
-                    <motion.div
-                        className="w-full bg-gray-200 h-5 rounded-full overflow-hidden relative"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{
-                            opacity: 0,
-                            y: -20,
-                            transition: { duration: 0.4 },
-                        }}
-                    >
-                        <motion.div
-                            className="h-5 rounded-full bg-green-600 animate-pulse"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progress}%` }}
-                            transition={{ duration: 0.5, ease: "easeInOut" }}
-                        />
-                        <span className="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 text-xs text-gray-700 font-medium">
-                            {progress}%
-                        </span>
-                    </motion.div>
-                )}
+    const [visible, setVisible] = useState(false);
 
-                {/* Animowany napis Completed */}
-                {progress === 100 && (
-                    <motion.div
-                        className="w-full text-center absolute bottom-0"
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1, scale: 1.5 }}
-                        exit={{ y: 20, opacity: 0 }}
-                        transition={{
-                            type: "spring",
-                            stiffness: 120,
-                            damping: 12,
-                        }}
-                    >
-                        <span className="text-green-600 font-bold text-lg">
-                            ✅ Completed!
-                        </span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+    useEffect(() => {
+        if (progress > 0 && progress < 100) {
+            setVisible(true);
+        } else if (progress === 100) {
+            // po 1.5 sekundy od ukończenia chowamy pasek
+            const timer = setTimeout(() => setVisible(false), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [progress]);
+
+    return (
+        <AnimatePresence>
+            {visible && (
+                <motion.div
+                    className="fixed top-2 left-1/2 -translate-x-1/2 w-96 bg-green-50 border rounded-2xl border-green-300 p-3 z-50"
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -100, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                    {progress < 100 ? (
+                        <div className="relative h-4 bg-gray-50 rounded-full overflow-hidden">
+                            <motion.div
+                                className="h-4 bg-green-600"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                            />
+                            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-gray-700">
+                                {progress}%
+                            </span>
+                        </div>
+                    ) : (
+                        <motion.div
+                            className="text-center"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <span className="text-green-600 font-bold text-lg">
+                                ✅ Completed!
+                            </span>
+                        </motion.div>
+                    )}
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }

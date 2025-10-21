@@ -1,4 +1,5 @@
 // app/admin/page.tsx
+import Nav from "@/components/admin/Nav";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -33,8 +34,10 @@ export default async function AdminHome() {
     const clients = await getClients();
 
     return (
-        <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <>
+            <Nav />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
                 {clients.map((client) => {
                     const photoUrl = `${r2Domain}/${client.heroImage}`;
                     return (
@@ -48,7 +51,7 @@ export default async function AdminHome() {
                                 alt={client.name}
                                 width={300}
                                 height={200}
-                                className="w-full h-48 object-cover"
+                                className="w-full h-56 object-cover"
                             />
                             <div className="p-2 text-start font-semibold text-sm">
                                 {client.name}
@@ -57,6 +60,6 @@ export default async function AdminHome() {
                     );
                 })}
             </div>
-        </div>
+        </>
     );
 }
