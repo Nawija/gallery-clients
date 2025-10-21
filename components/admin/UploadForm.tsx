@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UploadCloud, XCircle, CheckCircle, X } from "lucide-react";
+import { UploadCloud, XCircle, CheckCircle, X, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProgressBar from "../loading/ProgressBar";
 import Image from "next/image";
@@ -259,7 +259,7 @@ export default function UploadForm() {
                                                 damping: 15,
                                             }}
                                         >
-                                            <CheckCircle className="w-10 h-10 text-green-600" />
+                                            <Check className="w-10 h-10 text-green-600" />
                                         </motion.div>
                                     )}
 
