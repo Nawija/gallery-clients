@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UploadCloud, XCircle, CheckCircle, X, Check } from "lucide-react";
+import { UploadCloud, XCircle, X, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProgressBar from "../loading/ProgressBar";
 import Image from "next/image";
@@ -173,9 +173,10 @@ export default function UploadForm() {
                         e.dataTransfer.files &&
                         e.dataTransfer.files.length > 0
                     ) {
-                        handleFiles({
+                        const syntheticEvent = {
                             target: { files: e.dataTransfer.files },
-                        } as any);
+                        } as unknown as React.ChangeEvent<HTMLInputElement>;
+                        handleFiles(syntheticEvent);
                         e.dataTransfer.clearData();
                     }
                 }}
