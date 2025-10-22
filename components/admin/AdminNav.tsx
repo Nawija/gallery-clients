@@ -15,9 +15,9 @@ export default function AdminNav() {
 
     return (
         <nav className="shadow bg-white sticky top-0 z-50">
-            <div className="flex items-center justify-between gap-4 p-4 max-w-7xl mx-auto">
+            <div className="flex items-center flex-col justify-between gap-4 p-4 max-w-7xl mx-auto">
                 <Link href="/admin" className="font-semibold text-2xl">Admin Panel</Link>
-                <div className="space-x-4">
+
                     <Link
                         href="/admin/add-client"
                         className={linkClass("/admin/add-client")}
@@ -30,7 +30,7 @@ export default function AdminNav() {
                     >
                         Upload Photos
                     </Link>
-                </div>
+
             </div>
         </nav>
     );
