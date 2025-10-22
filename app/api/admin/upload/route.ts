@@ -1,9 +1,9 @@
+// app/api/admin/upload/route.ts
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { uploadToR2 } from "@/lib/r2";
 import sharp from "sharp";
 
-// Typ dla wiersza w tabeli photos
 type PhotoRow = {
     id: string;
     client_id: string;
@@ -13,10 +13,9 @@ type PhotoRow = {
     width: number;
     height: number;
     is_hero: boolean;
-    created_at: string; // timestamp
+    created_at: string;
 };
 
-// Typ danych przesyłanych w body requestu
 type UploadRequestBody = {
     clientId: string;
     filename: string;
@@ -26,6 +25,8 @@ type UploadRequestBody = {
 };
 
 export async function POST(req: Request) {
+    console.log("METHOD:", req.method);
+
     const adminPass = req.headers.get("x-admin-pass");
     if (adminPass !== process.env.ADMIN_PASSWORD) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,10 +41,7 @@ export async function POST(req: Request) {
     }: UploadRequestBody = await req.json();
 
     if (!clientId || !filename || !dataBase64) {
-        return NextResponse.json(
-            { error: "Brak wymaganych danych" },
-            { status: 400 }
-        );
+        return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
     try {
@@ -53,7 +51,7 @@ export async function POST(req: Request) {
         );
         if (clientRes.rows.length === 0) {
             return NextResponse.json(
-                { error: "Nie znaleziono klienta" },
+                { error: "Client not found" },
                 { status: 404 }
             );
         }
@@ -67,7 +65,6 @@ export async function POST(req: Request) {
         const width = metadata.width || 1600;
         const height = metadata.height || 1067;
 
-        // 🔹 Jeśli isHero = true, ustaw resztę zdjęć klienta na false
         if (isHero) {
             await pool.query(
                 "UPDATE photos SET is_hero = FALSE WHERE client_id = $1",
@@ -76,7 +73,8 @@ export async function POST(req: Request) {
         }
 
         const result = await pool.query<PhotoRow>(
-            `INSERT INTO photos (client_id, filename, r2_key, caption, width, height, is_hero)
+            `INSERT INTO photos
+       (client_id, filename, r2_key, caption, width, height, is_hero)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
             [
@@ -91,11 +89,8 @@ export async function POST(req: Request) {
         );
 
         return NextResponse.json({ photo: result.rows[0] as PhotoRow });
-    } catch (err: unknown) {
-        console.error("❌ Upload error:", err);
-        return NextResponse.json(
-            { error: "Błąd podczas uploadu" },
-            { status: 500 }
-        );
+    } catch (err) {
+        console.error("Upload error:", err);
+        return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
 }
