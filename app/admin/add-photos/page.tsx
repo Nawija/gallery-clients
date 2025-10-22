@@ -11,7 +11,6 @@ async function getClients(): Promise<Client[]> {
     const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/clients`,
         {
-            method: "POST",
             headers: { "x-admin-pass": "seo123" },
             cache: "no-store", // zawsze świeże dane
         }
