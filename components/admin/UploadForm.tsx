@@ -19,7 +19,7 @@ type Client = {
 };
 
 
-export default function UploadForm() {
+export default async function UploadForm() {
     const [clients, setClients] = useState<Client[]>([]);
     const [clientId, setClientId] = useState("");
     const [isDragging, setIsDragging] = useState(false);
