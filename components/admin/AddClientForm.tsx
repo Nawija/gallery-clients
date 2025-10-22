@@ -38,34 +38,28 @@ export default function AddClientForm() {
         <div className="p-8 max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold mb-6">Add New Client</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <label className="font-semibold text-gray-700 -mb-8 ml-1 z-10 px-2 bg-gray-100 w-max">
-                    Client name
-                </label>
                 <input
                     type="text"
+                    placeholder="Client name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="border border-gray-300 p-3 pl-3 rounded focus:outline-none focus:ring focus:ring-gray-300 transition"
+                    className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
                     required
                 />
-                <label className="font-semibold text-gray-700 -mb-8 ml-1 z-10 px-2 bg-gray-100 w-max">
-                    Slug (link)
-                </label>
                 <input
                     type="text"
+                    placeholder="Slug (e.g. anna-nowak)"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="border border-gray-300 p-3 pl-3 rounded focus:outline-none focus:ring focus:ring-gray-300 transition"
+                    className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
                     required
                 />
-                <label className="font-semibold text-gray-700 -mb-8 ml-1 z-10 px-2 bg-gray-100 w-max">
-                    Password
-                </label>
                 <input
-                    type="text"
+                    type="password"
+                    placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border border-gray-300 p-3 pl-3 rounded focus:outline-none focus:ring focus:ring-gray-300 transition"
+                    className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black transition"
                     required
                 />
 

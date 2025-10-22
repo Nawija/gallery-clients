@@ -47,7 +47,7 @@ export default async function AdminHome() {
                             href={`/strefa-klienta/${client.slug}`}
                             className="overflow-hidden relative"
                         >
-                            <Image
+                            <img
                                 src={photoUrl}
                                 alt={client.name}
                                 width={300}
