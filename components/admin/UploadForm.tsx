@@ -18,17 +18,42 @@ type Client = {
     slug: string;
 };
 
-type UploadFormProps = {
-    clients: Client[];
-};
 
-export default function UploadForm({ clients }: UploadFormProps) {
-    const [clientId, setClientId] = useState(clients[0]?.slug || "");
+export default function UploadForm() {
+    const [clients, setClients] = useState<Client[]>([]);
+    const [clientId, setClientId] = useState("");
     const [isDragging, setIsDragging] = useState(false);
     const [uploads, setUploads] = useState<UploadPhoto[]>([]);
     const [progress, setProgress] = useState(0);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        async function fetchClients() {
+            try {
+                const res = await fetch(
+                    `/api/admin/clients`,
+                    {
+                        headers: { "x-admin-pass": "seo123" },
+                        cache: "no-store",
+                    }
+                );
 
+                if (!res.ok) throw new Error("Failed to fetch clients");
+                const data = await res.json();
+
+                setClients(data.clients);
+                setClientId(data.clients[0]?.slug || "");
+            } catch (error) {
+                console.error("❌ Error fetching clients:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchClients();
+    }, []);
+
+    // 🟡 Obsługa uploadu
     function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files) return;
         const filesArray = Array.from(e.target.files).map((file) => ({
@@ -65,13 +90,11 @@ export default function UploadForm({ clients }: UploadFormProps) {
     async function handleUpload(e: React.FormEvent) {
         e.preventDefault();
         setProgress(0);
-        // ustawiamy wszystkie zdjęcia jako "pending"
         setUploads((prev) => prev.map((u) => ({ ...u, status: "pending" })));
 
         const total = uploads.length;
         let completed = 0;
 
-        // równoległe wysyłanie zdjęć
         await Promise.allSettled(
             uploads.map(async (photo, index) => {
                 try {
@@ -93,29 +116,33 @@ export default function UploadForm({ clients }: UploadFormProps) {
                         }),
                     });
 
-                    if (!res.ok) {
-                        throw new Error("Upload failed");
-                    }
+                    if (!res.ok) throw new Error("Upload failed");
 
-                    // jeśli sukces
                     setUploads((prev) =>
                         prev.map((u, i) =>
                             i === index ? { ...u, status: "uploaded" } : u
                         )
                     );
-                } catch (error) {
-                    // jeśli błąd
+                } catch {
                     setUploads((prev) =>
                         prev.map((u, i) =>
                             i === index ? { ...u, status: "error" } : u
                         )
                     );
                 } finally {
-                    // aktualizuj progres po każdym pliku
                     completed++;
                     setProgress(Math.round((completed / total) * 100));
                 }
             })
+        );
+    }
+
+    // 🟢 Loading state
+    if (loading) {
+        return (
+            <div className="p-10 text-center text-gray-500 text-lg">
+                Loading clients...
+            </div>
         );
     }
 

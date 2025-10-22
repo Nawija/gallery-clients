@@ -3,6 +3,7 @@ import Nav from "@/components/admin/Nav";
 import Image from "next/image";
 import Link from "next/link";
 
+
 type Client = {
     name: string;
     slug: string;
