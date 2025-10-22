@@ -1,42 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UploadCloud, XCircle, X, Check } from "lucide-react";
+import { ImageIcon, UploadCloud, X, XCircle } from "lucide-react";
+
 import { AnimatePresence, motion } from "framer-motion";
-import ProgressBar from "../loading/ProgressBar";
-import Image from "next/image";
 
 type UploadPhoto = {
     file: File;
     preview: string;
     caption: string;
     isHero: boolean;
-    status?: "pending" | "uploaded" | "error";
 };
 
 type Client = {
     slug: string;
 };
 
-
 export default function UploadForm() {
     const [clients, setClients] = useState<Client[]>([]);
     const [clientId, setClientId] = useState("");
     const [isDragging, setIsDragging] = useState(false);
     const [uploads, setUploads] = useState<UploadPhoto[]>([]);
-    const [progress, setProgress] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [msg, setMsg] = useState("");
 
+    // Fetch clients on mount
     useEffect(() => {
         async function fetchClients() {
             try {
-                const res = await fetch(
-                    `/api/admin/clients`,
-                    {
-                        headers: { "x-admin-pass": "seo123" },
-                        cache: "no-store",
-                    }
-                );
+                const res = await fetch(`/api/admin/clients`, {
+                    headers: { "x-admin-pass": "seo123" },
+                    cache: "no-store",
+                });
 
                 if (!res.ok) throw new Error("Failed to fetch clients");
                 const data = await res.json();
@@ -45,15 +39,13 @@ export default function UploadForm() {
                 setClientId(data.clients[0]?.slug || "");
             } catch (error) {
                 console.error("❌ Error fetching clients:", error);
-            } finally {
-                setLoading(false);
             }
         }
 
         fetchClients();
     }, []);
 
-    // 🟡 Obsługa uploadu
+    // Handle file selection
     function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files) return;
         const filesArray = Array.from(e.target.files).map((file) => ({
@@ -89,66 +81,61 @@ export default function UploadForm() {
 
     async function handleUpload(e: React.FormEvent) {
         e.preventDefault();
-        setProgress(0);
-        setUploads((prev) => prev.map((u) => ({ ...u, status: "pending" })));
+        if (!clientId || uploads.length === 0) {
+            setMsg("⚠️ Please choose a client and add files first.");
+            return;
+        }
 
-        const total = uploads.length;
-        let completed = 0;
+        setMsg(`Uploading ${uploads.length} file(s)...`);
+        const results: string[] = [];
 
-        await Promise.allSettled(
-            uploads.map(async (photo, index) => {
-                try {
-                    const buffer = await photo.file.arrayBuffer();
-                    const base64 = Buffer.from(buffer).toString("base64");
+        for (const photo of uploads) {
+            try {
+                const buffer = await photo.file.arrayBuffer();
+                const base64 = Buffer.from(buffer).toString("base64");
 
-                    const res = await fetch("/api/admin/upload", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-admin-pass": "seo123",
-                        },
-                        body: JSON.stringify({
-                            clientId,
-                            filename: photo.file.name,
-                            dataBase64: base64,
-                            caption: photo.caption,
-                            isHero: photo.isHero,
-                        }),
-                    });
+                const res = await fetch("/api/admin/upload", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-admin-pass": "seo123",
+                    },
+                    body: JSON.stringify({
+                        clientId,
+                        filename: photo.file.name,
+                        dataBase64: base64,
+                        caption: photo.caption,
+                        isHero: photo.isHero,
+                    }),
+                });
 
-                    if (!res.ok) throw new Error("Upload failed");
+                const data = await res.json();
+                if (res.ok) results.push(`✅ ${photo.file.name}`);
+                else results.push(`❌ ${photo.file.name}: ${data.error}`);
+            } catch {
+                results.push(`❌ ${photo.file.name}: server error`);
+            }
+        }
 
-                    setUploads((prev) =>
-                        prev.map((u, i) =>
-                            i === index ? { ...u, status: "uploaded" } : u
-                        )
-                    );
-                } catch {
-                    setUploads((prev) =>
-                        prev.map((u, i) =>
-                            i === index ? { ...u, status: "error" } : u
-                        )
-                    );
-                } finally {
-                    completed++;
-                    setProgress(Math.round((completed / total) * 100));
-                }
-            })
-        );
-    }
-
-    // 🟢 Loading state
-    if (loading) {
-        return (
-            <div className="p-10 text-center text-gray-500 text-lg">
-                Loading clients...
-            </div>
-        );
+        setMsg(results.join("\n"));
+        setUploads([]);
     }
 
     return (
-        <form onSubmit={handleUpload} className="p-10 space-y-8 mb-12">
-            <h2 className="text-2xl font-bold mb-6">Upload Photos</h2>
+        <form
+            onSubmit={handleUpload}
+            className="bg-white p-10 rounded-2xl shadow-xl border border-gray-200 space-y-8 transition-all hover:shadow-2xl"
+        >
+            {/* HEADER */}
+            <div className="text-center space-y-2">
+                <h3 className="text-3xl font-bold text-gray-900">
+                    Upload Photos
+                </h3>
+                <p className="text-gray-500 text-sm">
+                    Choose a client and upload images with captions.
+                </p>
+            </div>
+
             {/* SELECT CLIENT */}
             <div className="space-y-2">
                 <label className="block font-semibold text-gray-700">
@@ -166,39 +153,9 @@ export default function UploadForm() {
                     ))}
                 </select>
             </div>
+
             {/* UPLOAD AREA */}
-
-            <motion.div
-                onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                    e.preventDefault();
-                    setIsDragging(false);
-                }}
-                onDrop={(e) => {
-                    e.preventDefault();
-                    setIsDragging(false);
-
-                    if (
-                        e.dataTransfer.files &&
-                        e.dataTransfer.files.length > 0
-                    ) {
-                        const syntheticEvent = {
-                            target: { files: e.dataTransfer.files },
-                        } as unknown as React.ChangeEvent<HTMLInputElement>;
-                        handleFiles(syntheticEvent);
-                        e.dataTransfer.clearData();
-                    }
-                }}
-                animate={{
-                    borderColor: isDragging ? "#111" : "#d1d5db",
-                    backgroundColor: isDragging ? "#f9fafb" : "transparent",
-                }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="border-2 border-dashed rounded-xl p-12 h-52 text-center cursor-pointer transition-all bg-white"
-            >
+            <div className="border-dashed border-2 border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-50 transition">
                 <input
                     type="file"
                     accept="image/*"
@@ -246,7 +203,7 @@ export default function UploadForm() {
                         )}
                     </div>
                 </label>
-            </motion.div>
+            </div>
 
             {/* PREVIEWS */}
             {uploads.length > 0 && (
@@ -261,70 +218,13 @@ export default function UploadForm() {
                         >
                             {/* PHOTO */}
                             <div className="relative w-full h-48 bg-white flex items-center justify-center">
-                                <Image
+                                <img
                                     src={u.preview}
                                     alt={u.file.name}
                                     width={100}
                                     height={100}
                                     className="w-full h-48 object-contain p-2"
                                 />
-
-                                {/* OVERLAY STATUS */}
-                                <AnimatePresence mode="wait">
-                                    {u.status === "pending" && (
-                                        <motion.div
-                                            key="pending"
-                                            className="absolute inset-0 flex items-center justify-center animate-pulse bg-white/40 backdrop-blur-sm"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                        >
-                                            <motion.div
-                                                className="w-8 h-8 border-[3px] border-white/40 border-t-white rounded-full"
-                                                animate={{ rotate: 360 }}
-                                                transition={{
-                                                    repeat: Infinity,
-                                                    duration: 1,
-                                                    ease: "linear",
-                                                }}
-                                            />
-                                        </motion.div>
-                                    )}
-
-                                    {u.status === "uploaded" && (
-                                        <motion.div
-                                            key="uploaded"
-                                            className="absolute inset-0 bg-white/80 flex items-center justify-center"
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{
-                                                type: "spring",
-                                                stiffness: 180,
-                                                damping: 15,
-                                            }}
-                                        >
-                                            <Check className="w-10 h-10 text-green-600" />
-                                        </motion.div>
-                                    )}
-
-                                    {u.status === "error" && (
-                                        <motion.div
-                                            key="error"
-                                            className="absolute inset-0 flex items-center justify-center bg-red-500/20 backdrop-blur-[1px]"
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{
-                                                type: "spring",
-                                                stiffness: 180,
-                                                damping: 15,
-                                            }}
-                                        >
-                                            <XCircle className="w-10 h-10 text-red-600 drop-shadow-md" />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </div>
 
                             {/* REMOVE BUTTON */}
@@ -336,8 +236,7 @@ export default function UploadForm() {
                                 <X className="w-4 h-4 text-red-500" />
                             </button>
 
-                            {/* CAPTION + HERO */}
-                            <div className="p-4 space-y-3">
+                            <div className="p-3 space-y-2">
                                 <input
                                     type="text"
                                     placeholder="Caption..."
@@ -354,7 +253,7 @@ export default function UploadForm() {
                                         onChange={() => toggleHero(i)}
                                         className="accent-black"
                                     />
-                                    Main photo
+                                    Główne zdjecie
                                 </label>
                             </div>
                         </motion.div>
@@ -363,17 +262,19 @@ export default function UploadForm() {
             )}
 
             {/* SUBMIT BUTTON */}
-            {progress < 1 && (
-                <button
-                    type="submit"
-                    className="w-full bg-black text-white py-3 rounded font-semibold text-lg hover:bg-gray-800 transition-all"
-                >
-                    Upload Photos
-                </button>
-            )}
-            {/* PROGRESS BAR */}
+            <button
+                type="submit"
+                className="w-full bg-black text-white py-3 rounded-xl font-semibold text-lg hover:bg-gray-800 transition-all"
+            >
+                Upload Photos
+            </button>
 
-            {progress > 0 && <ProgressBar progress={progress} />}
+            {/* STATUS */}
+            {msg && (
+                <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-800 whitespace-pre-wrap mt-4 overflow-auto max-h-40">
+                    {msg}
+                </pre>
+            )}
         </form>
     );
 }
