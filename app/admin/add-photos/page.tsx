@@ -1,5 +1,5 @@
 import UploadForm from "@/components/admin/UploadForm";
 
-export default async function UploadPhotosPage() {
+export default function UploadPhotosPage() {
     return <UploadForm />;
 }
